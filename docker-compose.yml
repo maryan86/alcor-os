@@ -1,0 +1,59 @@
+# Local development stack: app (PHP CLI), postgres, adminer.
+name: ${COMPOSE_PROJECT_NAME:-alcor-earning-lines}
+
+services:
+  app:
+    build:
+      context: .
+      target: dev
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.5}
+    image: ${APP_IMAGE:-alcor-earning-lines:dev}
+    init: true
+    restart: "no"
+    environment:
+      # Inside compose the database is the postgres service; the host-side values from .env are overridden.
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-alcor_payroll}
+      DB_USERNAME: ${DB_USERNAME:-alcor}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-18}-alpine
+    restart: "no"
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-alcor}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+      POSTGRES_DB: ${DB_DATABASE:-alcor_payroll}
+      POSTGRES_TEST_DB: ${DB_TEST_DATABASE:-alcor_payroll_test}
+    ports:
+      - "127.0.0.1:${DB_PORT:-54330}:5432"   # loopback only: artisan/PHPUnit/IDE from the host
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  adminer:
+    image: adminer:${ADMINER_VERSION:-5}
+    restart: "no"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "127.0.0.1:${ADMINER_PORT:-8082}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:

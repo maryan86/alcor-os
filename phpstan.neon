@@ -1,0 +1,18 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/phpat/phpat/extension.neon
+
+parameters:
+    level: max
+    paths:
+        - app
+        - tests
+    tmpDir: .phpstan.cache
+    phpat:
+        ignore_built_in_classes: true
+
+services:
+    -
+        class: Tests\Architecture\LayeringTest
+        tags:
+            - phpat.test
