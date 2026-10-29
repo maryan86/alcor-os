@@ -1,0 +1,65 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "alcor/earning-line-adjustments",
+    "type": "project",
+    "description": "Proof of concept: manual adjustments history of a payroll earning line (DDD + CQRS + Event Sourcing on Laravel).",
+    "license": "MIT",
+    "require": {
+        "php": "^8.5",
+        "laravel/framework": "^13.17",
+        "psr/clock": "^1.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "*",
+        "laravel/pint": "^1.27",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.6",
+        "phpat/phpat": "*",
+        "phpstan/phpstan": "*",
+        "phpunit/phpunit": "^12.5.12"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "setup": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php artisan key:generate --ansi",
+            "@php artisan migrate --force --ansi"
+        ],
+        "test": [
+            "@php artisan config:clear --ansi",
+            "@php vendor/bin/phpunit"
+        ],
+        "analyse": "@php vendor/bin/phpstan analyse --memory-limit=1G",
+        "cs": "@php vendor/bin/pint --test",
+        "check": [
+            "@cs",
+            "@analyse",
+            "@test"
+        ],
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
